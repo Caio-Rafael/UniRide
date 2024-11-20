@@ -35,10 +35,14 @@ class _TelaLoginState extends State<TelaLogin> {
       final user = await DatabaseHelper.instance.getUserByEmail(email);
 
       if (user != null && user['senha'] == senha) {
+        // Login bem-sucedido, navega para a TelaHome passando os dados do usuário logado
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => TelaHome(userType: user['tipo']),
+            builder: (context) => TelaHome(
+              userEmail: user['email'], // Passa o e-mail do usuário
+              userType: user['tipo'],  // Passa o tipo do usuário (Motorista/Usuário)
+            ),
           ),
         );
       } else {
@@ -181,4 +185,3 @@ class _TelaLoginState extends State<TelaLogin> {
     );
   }
 }
-

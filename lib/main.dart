@@ -16,18 +16,35 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'CarUnit',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      initialRoute: '/', // Tela inicial será a de login
       routes: {
-        '/': (context) => const TelaLogin(),
-        '/cadastro': (context) => const TelaCadastro(),
-        '/home': (context) => const TelaHome(userType: 'Motorista'),
+        '/': (context) => const TelaLogin(), // Tela de Login
+        '/cadastro': (context) => const TelaCadastro(), // Tela de Cadastro
+      },
+      // Rota dinâmica para TelaHome (passando parâmetros)
+      onGenerateRoute: (settings) {
+        if (settings.name == '/home') {
+          final args = settings.arguments as Map<String, dynamic>?;
+
+          if (args != null) {
+            final userEmail = args['email'] as String;
+            final userType = args['type'] as String;
+
+            return MaterialPageRoute(
+              builder: (context) => TelaHome(
+                userEmail: userEmail,
+                userType: userType,
+              ),
+            );
+          }
+        }
+        return null;
       },
     );
   }
 }
-

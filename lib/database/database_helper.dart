@@ -35,8 +35,20 @@ class DatabaseHelper {
         tipo TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE carona (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        motorista_id INTEGER NOT NULL,
+        destino TEXT NOT NULL,
+        horario TEXT NOT NULL,
+        vagas INTEGER NOT NULL,
+        FOREIGN KEY (motorista_id) REFERENCES users (id)
+      )
+    ''');
   }
 
+  // usuários
   Future<int> insertUser(Map<String, dynamic> user) async {
     final db = await instance.database;
     return await db.insert('users', user);
@@ -50,5 +62,35 @@ class DatabaseHelper {
       whereArgs: [email],
     );
     return result.isNotEmpty ? result.first : null;
+  }
+
+  // CRUD caronas
+  Future<int> createCarona(Map<String, dynamic> carona) async {
+    final db = await instance.database;
+    return await db.insert('carona', carona);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllCarona() async {
+    final db = await instance.database;
+    return await db.query('carona');
+  }
+
+  Future<int> updateCarona(int id, Map<String, dynamic> updatedCarona) async {
+    final db = await instance.database;
+    return await db.update(
+      'carona',
+      updatedCarona,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteCarona(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      'carona',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
