@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import './telaCriarCarona.dart';
 
-class TelaHome extends StatelessWidget {
+class TelaHome extends StatefulWidget {
   final String userEmail;
   final String userType;
 
   const TelaHome({Key? key, required this.userEmail, required this.userType})
       : super(key: key);
 
-  Future<Map<String, String>> _fetchUserData() async {
-    final user = await DatabaseHelper.instance.getUserByEmail(userEmail);
-    return {
-      'name': user?['nome'] ?? 'Nome não encontrado',
-      'email': user?['email'] ?? 'Email não encontrado',
-    };
+  @override
+  _TelaHomeState createState() => _TelaHomeState();
+}
+
+class _TelaHomeState extends State<TelaHome> {
+  late Future<List<Map<String, dynamic>>> _caronasFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _caronasFuture = _fetchCaronas();
   }
 
   Future<List<Map<String, dynamic>>> _fetchCaronas() async {
     return await DatabaseHelper.instance.getAllCarona();
   }
 
+  void _atualizarCaronas() {
+    setState(() {
+      _caronasFuture = _fetchCaronas();
+    });
+  }
+
+  Future<Map<String, dynamic>?> _getUserInfo() async {
+    return await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
+  }
+
+  Future<void> _excluirCarona(int id) async {
+    try {
+      await DatabaseHelper.instance.deleteCarona(id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Carona excluída com sucesso!')),
+      );
+      _atualizarCaronas();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao excluir carona: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Página Inicial'),
+      ),
       drawer: Drawer(
-        child: FutureBuilder<Map<String, String>>(
-          future: _fetchUserData(),
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: _getUserInfo(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -40,13 +73,12 @@ class TelaHome extends StatelessWidget {
               );
             }
 
-            final userData = snapshot.data!;
-
+            final user = snapshot.data!;
             return Column(
               children: [
                 UserAccountsDrawerHeader(
-                  accountName: Text(userData['name'] ?? 'Nome não encontrado'),
-                  accountEmail: Text(userData['email'] ?? 'Email não encontrado'),
+                  accountName: Text(user['nome']),
+                  accountEmail: Text(user['email']),
                   currentAccountPicture: const CircleAvatar(
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 50, color: Colors.blue),
@@ -58,7 +90,7 @@ class TelaHome extends StatelessWidget {
                 ListTile(
                   title: const Text('Home'),
                   onTap: () {
-                    Navigator.pop(context); // Fechar o Drawer
+                    Navigator.pop(context);
                   },
                 ),
                 ListTile(
@@ -84,21 +116,8 @@ class TelaHome extends StatelessWidget {
           },
         ),
       ),
-      appBar: AppBar(
-        title: const Text('Página Inicial'),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchCaronas(),
+        future: _caronasFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -124,144 +143,101 @@ class TelaHome extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            itemCount: caronas.length,
-            itemBuilder: (context, index) {
-              final carona = caronas[index];
-              return Card(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text('Destino: ${carona['destino']}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Horário: ${carona['horario']}'),
-                      Text('Vagas: ${carona['vagas']}'),
-                    ],
+          return FutureBuilder<Map<String, dynamic>?>(
+            future: _getUserInfo(),
+            builder: (context, userSnapshot) {
+              if (userSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (userSnapshot.hasError || !userSnapshot.hasData) {
+                return Center(
+                  child: Text(
+                    'Erro ao carregar informações do usuário.',
+                    style: const TextStyle(color: Colors.red),
                   ),
-                  leading: const Icon(Icons.directions_car, color: Colors.blue),
-                ),
+                );
+              }
+
+              final currentUser = userSnapshot.data!;
+              final currentUserId = currentUser['id'];
+
+              return ListView.builder(
+                itemCount: caronas.length,
+                itemBuilder: (context, index) {
+                  final carona = caronas[index];
+                  final podeExcluir = widget.userType == 'Motorista' &&
+                      carona['motorista_id'] == currentUserId;
+
+                  return Card(
+                    margin: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      title: Text('Destino: ${carona['destino']}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Horário: ${carona['horario']}'),
+                          Text('Vagas: ${carona['vagas']}'),
+                        ],
+                      ),
+                      leading: const Icon(Icons.directions_car, color: Colors.blue),
+                      trailing: podeExcluir
+                          ? IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Excluir Carona'),
+                                      content: const Text(
+                                          'Tem certeza que deseja excluir esta carona?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Excluir'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (confirm == true) {
+                                  await _excluirCarona(carona['id']);
+                                }
+                              },
+                            )
+                          : null,
+                    ),
+                  );
+                },
               );
             },
           );
         },
       ),
-      floatingActionButton: userType == 'Motorista'
+      floatingActionButton: widget.userType == 'Motorista'
           ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CriarCaronaScreen(userEmail: userEmail),
+                    builder: (context) =>
+                        CriarCaronaScreen(userEmail: widget.userEmail),
                   ),
                 );
+                if (result == true) _atualizarCaronas();
               },
-              child: const Icon(Icons.directions_car),
+              child: const Icon(Icons.add),
               tooltip: 'Criar Carona',
             )
           : null,
-    );
-  }
-}
-
-class CriarCaronaScreen extends StatefulWidget {
-  final String userEmail;
-
-  const CriarCaronaScreen({Key? key, required this.userEmail}) : super(key: key);
-
-  @override
-  _CriarCaronaScreenState createState() => _CriarCaronaScreenState();
-}
-
-class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _destinoController = TextEditingController();
-  final TextEditingController _horarioController = TextEditingController();
-  final TextEditingController _vagasController = TextEditingController();
-
-  Future<void> _criarCarona() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    try {
-      // Buscar o ID do usuário logado
-      final user = await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
-      if (user == null) {
-        throw Exception('Usuário não encontrado.');
-      }
-
-      final motoristaId = user['id'];
-
-      final carona = {
-        'motorista_id': motoristaId,
-        'destino': _destinoController.text.trim(),
-        'horario': _horarioController.text.trim(),
-        'vagas': int.parse(_vagasController.text.trim()),
-      };
-
-      await DatabaseHelper.instance.createCarona(carona);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Carona criada com sucesso!')),
-      );
-
-      Navigator.pop(context); // Retornar à tela anterior
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao criar carona: $e')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Criar Carona')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _destinoController,
-                decoration: const InputDecoration(labelText: 'Destino'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o destino';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _horarioController,
-                decoration: const InputDecoration(labelText: 'Horário'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o horário';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _vagasController,
-                decoration: const InputDecoration(labelText: 'Vagas'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty || int.tryParse(value) == null) {
-                    return 'Informe o número de vagas (valor numérico)';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _criarCarona,
-                child: const Text('Criar Carona'),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
