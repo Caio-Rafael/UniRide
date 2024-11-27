@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CriarCaronaScreen extends StatefulWidget {
   final String userEmail;
 
-  const CriarCaronaScreen({Key? key, required this.userEmail}) : super(key: key);
+  const CriarCaronaScreen({super.key, required this.userEmail});
 
   @override
   _CriarCaronaScreenState createState() => _CriarCaronaScreenState();
@@ -20,29 +21,38 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final user =
-          await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
-      if (user == null) {
-        throw Exception('Usuário não encontrado.');
+      final response = await http.get(Uri.parse('http://localhost:5000/users'));
+      if (response.statusCode == 200) {
+        final List<dynamic> users = json.decode(response.body);
+        final user = users.firstWhere((user) => user['email'] == widget.userEmail);
+
+        final carona = {
+          'motorista_id': user['id'],
+          'destino': _destinoController.text.trim(),
+          'horario': _horarioController.text.trim(),
+          'vagas': int.parse(_vagasController.text.trim()),
+        };
+
+        final caronaResponse = await http.post(
+          Uri.parse('http://localhost:5000/carona'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(carona),
+        );
+
+        if (caronaResponse.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Carona criada com sucesso!')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          throw Exception('Erro ao criar carona');
+        }
+      } else {
+        throw Exception('Erro ao carregar usuários');
       }
-
-      final carona = {
-        'motorista_id': user['id'],
-        'destino': _destinoController.text.trim(),
-        'horario': _horarioController.text.trim(),
-        'vagas': int.parse(_vagasController.text.trim()),
-      };
-
-      await DatabaseHelper.instance.createCarona(carona);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Carona criada com sucesso!')),
-      );
-
-      Navigator.pop(context, true); // Enviar sucesso para atualizar a lista
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao criar carona: $e')),
+        SnackBar(content: Text('Erro: $e')),
       );
     }
   }
@@ -50,7 +60,9 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar Carona')),
+      appBar: AppBar(
+        title: const Text('Criar Carona'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -82,13 +94,13 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                 decoration: const InputDecoration(labelText: 'Vagas'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty || int.tryParse(value) == null) {
-                    return 'Informe o número de vagas (valor numérico)';
+                  if (value == null || value.isEmpty) {
+                    return 'Informe o número de vagas';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _criarCarona,
                 child: const Text('Criar Carona'),

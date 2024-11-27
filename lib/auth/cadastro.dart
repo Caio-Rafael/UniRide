@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TelaCadastro extends StatefulWidget {
-  const TelaCadastro({Key? key}) : super(key: key);
+  const TelaCadastro({super.key});
 
   @override
   State<TelaCadastro> createState() => _TelaCadastroState();
@@ -18,36 +20,48 @@ class _TelaCadastroState extends State<TelaCadastro> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
-  Future<void> _cadastrar() async {
-    if (!_formKey.currentState!.validate()) return;
+Future<void> _cadastrar() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    final user = {
-      'nome': _nomeController.text.trim(),
-      'email': _emailController.text.trim(),
-      'senha': _senhaController.text.trim(),
-      'tipo': _tipoUsuario,
-    };
+  final user = {
+    'nome': _nomeController.text.trim(),
+    'email': _emailController.text.trim(),
+    'senha': _senhaController.text.trim(),
+    'tipo': _tipoUsuario,
+  };
 
-    try {
-      await DatabaseHelper.instance.insertUser(user);
+  try {
+    final response = await http.post(
+      Uri.parse('http://192.168.1.9:5000/users'), 
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(user),
+    );
+
+    if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cadastro realizado com sucesso!')),
       );
       Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao cadastrar usuário!')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    } else {
+      print('Erro: ${response.statusCode}');
+      print('Resposta: ${response.body}');
+      throw Exception('Falha ao cadastrar');
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Erro ao cadastrar usuário!')),
+    );
+    print('Erro de conexão: $e'); 
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {

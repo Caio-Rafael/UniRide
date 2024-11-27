@@ -1,173 +1,10 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 
-class TelaHome extends StatelessWidget {
-  final String userEmail;
-  final String userType;
-
-  const TelaHome({Key? key, required this.userEmail, required this.userType})
-      : super(key: key);
-
-  Future<Map<String, String>> _fetchUserData() async {
-    final user = await DatabaseHelper.instance.getUserByEmail(userEmail);
-    return {
-      'name': user?['nome'] ?? 'Nome não encontrado',
-      'email': user?['email'] ?? 'Email não encontrado',
-    };
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchCaronas() async {
-    return await DatabaseHelper.instance.getAllCarona();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: Drawer(
-        child: FutureBuilder<Map<String, String>>(
-          future: _fetchUserData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError || !snapshot.hasData) {
-              return Center(
-                child: Text(
-                  'Erro ao carregar dados do usuário.',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
-
-            final userData = snapshot.data!;
-
-            return Column(
-              children: [
-                UserAccountsDrawerHeader(
-                  accountName: Text(userData['name'] ?? 'Nome não encontrado'),
-                  accountEmail: Text(userData['email'] ?? 'Email não encontrado'),
-                  currentAccountPicture: const CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 50, color: Colors.blue),
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                  ),
-                ),
-                ListTile(
-                  title: const Text('Home'),
-                  onTap: () {
-                    Navigator.pop(context); // Fechar o Drawer
-                  },
-                ),
-                ListTile(
-                  title: const Text('Configurações'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: const Text('Perfil'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: const Text('Sair'),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/');
-                  },
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-      appBar: AppBar(
-        title: const Text('Página Inicial'),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-      ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchCaronas(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Erro ao carregar caronas: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          }
-
-          final caronas = snapshot.data ?? [];
-
-          if (caronas.isEmpty) {
-            return const Center(
-              child: Text(
-                'Nenhuma carona disponível.',
-                style: TextStyle(fontSize: 18),
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: caronas.length,
-            itemBuilder: (context, index) {
-              final carona = caronas[index];
-              return Card(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text('Destino: ${carona['destino']}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Horário: ${carona['horario']}'),
-                      Text('Vagas: ${carona['vagas']}'),
-                    ],
-                  ),
-                  leading: const Icon(Icons.directions_car, color: Colors.blue),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: userType == 'Motorista'
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CriarCaronaScreen(userEmail: userEmail),
-                  ),
-                );
-              },
-              child: const Icon(Icons.directions_car),
-              tooltip: 'Criar Carona',
-            )
-          : null,
-    );
-  }
-}
-
 class CriarCaronaScreen extends StatefulWidget {
   final String userEmail;
 
-  const CriarCaronaScreen({Key? key, required this.userEmail}) : super(key: key);
+  const CriarCaronaScreen({super.key, required this.userEmail});
 
   @override
   _CriarCaronaScreenState createState() => _CriarCaronaScreenState();
@@ -175,24 +12,22 @@ class CriarCaronaScreen extends StatefulWidget {
 
 class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _destinoController = TextEditingController();
-  final TextEditingController _horarioController = TextEditingController();
-  final TextEditingController _vagasController = TextEditingController();
+  final _destinoController = TextEditingController();
+  final _horarioController = TextEditingController();
+  final _vagasController = TextEditingController();
 
   Future<void> _criarCarona() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      // Buscar o ID do usuário logado
-      final user = await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
+      final user =
+          await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
       if (user == null) {
         throw Exception('Usuário não encontrado.');
       }
 
-      final motoristaId = user['id'];
-
       final carona = {
-        'motorista_id': motoristaId,
+        'motorista_id': user['id'],
         'destino': _destinoController.text.trim(),
         'horario': _horarioController.text.trim(),
         'vagas': int.parse(_vagasController.text.trim()),
@@ -204,7 +39,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
         const SnackBar(content: Text('Carona criada com sucesso!')),
       );
 
-      Navigator.pop(context); // Retornar à tela anterior
+      Navigator.pop(context, true); // Enviar sucesso para atualizar a lista
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao criar carona: $e')),

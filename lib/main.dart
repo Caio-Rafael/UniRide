@@ -1,8 +1,7 @@
 import 'package:carunit/auth/cadastro.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+//import 'package:flutter/services.dart';
 import 'package:carunit/auth/login.dart';
-import './auth/cadastro.dart';
 import 'telas/home.dart';
 
 void main() {

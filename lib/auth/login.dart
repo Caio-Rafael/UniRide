@@ -1,10 +1,10 @@
-import 'package:carunit/telas/home.dart';
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
-import '../telas/home.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // Para trabalhar com JSON
+import '../telas/home.dart'; // Certifique-se de que o caminho está correto
 
 class TelaLogin extends StatefulWidget {
-  const TelaLogin({Key? key}) : super(key: key);
+  const TelaLogin({super.key});
 
   @override
   State<TelaLogin> createState() => _TelaLoginState();
@@ -32,16 +32,21 @@ class _TelaLoginState extends State<TelaLogin> {
     final senha = _senhaController.text.trim();
 
     try {
-      final user = await DatabaseHelper.instance.getUserByEmail(email);
+      final response = await http.post(
+        Uri.parse('http://192.168.1.9:5000/login'),  // Substitua pelo seu IP local ou URL correta
+        body: json.encode({'email': email, 'senha': senha}),
+        headers: {'Content-Type': 'application/json'},
+      );
 
-      if (user != null && user['senha'] == senha) {
+      if (response.statusCode == 200) {
+        final user = json.decode(response.body);
         // Login bem-sucedido, navega para a TelaHome passando os dados do usuário logado
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => TelaHome(
-              userEmail: user['email'], // Passa o e-mail do usuário
-              userType: user['tipo'],  // Passa o tipo do usuário (Motorista/Usuário)
+              userEmail: user['email'],
+              userType: user['tipo'],
             ),
           ),
         );
@@ -79,82 +84,55 @@ class _TelaLoginState extends State<TelaLogin> {
                   ),
                   const SizedBox(height: 20),
                   // Campo de Email
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(0.2),
+                  TextFormField(
+                    controller: _emailController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email é obrigatório';
+                      }
+                      return null;
+                    },
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.email),
+                      hintText: "Email",
                     ),
-                    child: TextFormField(
-                      controller: _emailController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Email é obrigatório';
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.email),
-                        border: InputBorder.none,
-                        hintText: "Email",
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
+                    keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 15),
                   // Campo de Senha
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(0.2),
-                    ),
-                    child: TextFormField(
-                      controller: _senhaController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Senha é obrigatória';
-                        }
-                        return null;
-                      },
-                      obscureText: !_isPasswordVisible,
-                      decoration: InputDecoration(
-                        icon: const Icon(Icons.lock),
-                        border: InputBorder.none,
-                        hintText: "Senha",
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
+                  TextFormField(
+                    controller: _senhaController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Senha é obrigatória';
+                      }
+                      return null;
+                    },
+                    obscureText: !_isPasswordVisible,
+                    decoration: InputDecoration(
+                      icon: const Icon(Icons.lock),
+                      hintText: "Senha",
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   // Botão de Login
-                  Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple,
-                    ),
-                    child: TextButton(
-                      onPressed: _isLoading ? null : _login,
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              "LOGIN",
-                              style: TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                    ),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text("LOGIN"),
                   ),
                   const SizedBox(height: 15),
                   // Link para Cadastro
@@ -170,7 +148,6 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                     ],
                   ),
-                  // Mensagem de Erro
                   if (_isLoginFailed)
                     const Text(
                       "Email ou senha inválidos",

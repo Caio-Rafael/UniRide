@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import './telaCriarCarona.dart';
 
 class TelaHome extends StatefulWidget {
   final String userEmail;
   final String userType;
 
-  const TelaHome({Key? key, required this.userEmail, required this.userType})
-      : super(key: key);
+  const TelaHome({super.key, required this.userEmail, required this.userType});
 
   @override
   _TelaHomeState createState() => _TelaHomeState();
@@ -15,6 +15,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
+  final String baseUrl = 'http://seu-servidor.com/api';  // Altere para a URL da sua API
 
   @override
   void initState() {
@@ -23,26 +24,39 @@ class _TelaHomeState extends State<TelaHome> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchCaronas() async {
-    return await DatabaseHelper.instance.getAllCarona();
-  }
+    final response = await http.get(Uri.parse('$baseUrl/carona'));
 
-  void _atualizarCaronas() {
-    setState(() {
-      _caronasFuture = _fetchCaronas();
-    });
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Erro ao carregar caronas');
+    }
   }
 
   Future<Map<String, dynamic>?> _getUserInfo() async {
-    return await DatabaseHelper.instance.getUserByEmail(widget.userEmail);
+    final response = await http.get(Uri.parse('$baseUrl/users'));
+    if (response.statusCode == 200) {
+      final List<dynamic> users = json.decode(response.body);
+      return users.firstWhere((user) => user['email'] == widget.userEmail, orElse: () => null);
+    } else {
+      throw Exception('Erro ao carregar informações do usuário');
+    }
   }
 
   Future<void> _excluirCarona(int id) async {
     try {
-      await DatabaseHelper.instance.deleteCarona(id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Carona excluída com sucesso!')),
-      );
-      _atualizarCaronas();
+      final response = await http.delete(Uri.parse('$baseUrl/carona/$id'));
+      if (response.statusCode == 204) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Carona excluída com sucesso!')),
+        );
+        setState(() {
+          _caronasFuture = _fetchCaronas();
+        });
+      } else {
+        throw Exception('Erro ao excluir carona');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao excluir carona: $e')),
@@ -57,7 +71,7 @@ class _TelaHomeState extends State<TelaHome> {
         title: const Text('Página Inicial'),
       ),
       drawer: Drawer(
-        child: FutureBuilder<Map<String, dynamic>?>(
+        child: FutureBuilder<Map<String, dynamic>?>( 
           future: _getUserInfo(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -116,7 +130,7 @@ class _TelaHomeState extends State<TelaHome> {
           },
         ),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<Map<String, dynamic>>>( 
         future: _caronasFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -143,7 +157,7 @@ class _TelaHomeState extends State<TelaHome> {
             );
           }
 
-          return FutureBuilder<Map<String, dynamic>?>(
+          return FutureBuilder<Map<String, dynamic>?>( 
             future: _getUserInfo(),
             builder: (context, userSnapshot) {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
@@ -232,10 +246,10 @@ class _TelaHomeState extends State<TelaHome> {
                         CriarCaronaScreen(userEmail: widget.userEmail),
                   ),
                 );
-                if (result == true) _atualizarCaronas();
+                if (result == true) setState(() {});
               },
-              child: const Icon(Icons.add),
               tooltip: 'Criar Carona',
+              child: const Icon(Icons.add),
             )
           : null,
     );
