@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // Para trabalhar com JSON
-import '../telas/home.dart'; // Certifique-se de que o caminho está correto
+import 'dart:convert';
+import '../telas/home.dart'; 
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -33,14 +33,13 @@ class _TelaLoginState extends State<TelaLogin> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.9:5000/login'),  // Substitua pelo seu IP local ou URL correta
+        Uri.parse('http://192.168.1.9:5000/login'), 
         body: json.encode({'email': email, 'senha': senha}),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final user = json.decode(response.body);
-        // Login bem-sucedido, navega para a TelaHome passando os dados do usuário logado
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -83,7 +82,6 @@ class _TelaLoginState extends State<TelaLogin> {
                     width: 300,
                   ),
                   const SizedBox(height: 20),
-                  // Campo de Email
                   TextFormField(
                     controller: _emailController,
                     validator: (value) {
@@ -99,7 +97,6 @@ class _TelaLoginState extends State<TelaLogin> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 15),
-                  // Campo de Senha
                   TextFormField(
                     controller: _senhaController,
                     validator: (value) {
@@ -127,7 +124,6 @@ class _TelaLoginState extends State<TelaLogin> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Botão de Login
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     child: _isLoading
@@ -135,7 +131,6 @@ class _TelaLoginState extends State<TelaLogin> {
                         : const Text("LOGIN"),
                   ),
                   const SizedBox(height: 15),
-                  // Link para Cadastro
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

@@ -16,15 +16,24 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _destinoController = TextEditingController();
   final _horarioController = TextEditingController();
   final _vagasController = TextEditingController();
+  final String baseUrl = 'http://192.168.1.9:5000'; // URL base da API
 
+  // Método para criar carona
   Future<void> _criarCarona() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final response = await http.get(Uri.parse('http://localhost:5000/users'));
-      if (response.statusCode == 200) {
-        final List<dynamic> users = json.decode(response.body);
-        final user = users.firstWhere((user) => user['email'] == widget.userEmail);
+      final userResponse = await http.get(Uri.parse('$baseUrl/users'));
+      if (userResponse.statusCode == 200) {
+        final List<dynamic> users = json.decode(userResponse.body);
+        final user = users.firstWhere(
+          (user) => user['email'] == widget.userEmail,
+          orElse: () => null,
+        );
+
+        if (user == null) {
+          throw Exception('Usuário não encontrado');
+        }
 
         final carona = {
           'motorista_id': user['id'],
@@ -34,21 +43,22 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
         };
 
         final caronaResponse = await http.post(
-          Uri.parse('http://localhost:5000/carona'),
+          Uri.parse('$baseUrl/carona'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(carona),
         );
 
         if (caronaResponse.statusCode == 201) {
+          final newCarona = json.decode(caronaResponse.body);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Carona criada com sucesso!')),
           );
-          Navigator.pop(context, true);
+          Navigator.pop(context, newCarona); // Retorna com a nova carona criada
         } else {
-          throw Exception('Erro ao criar carona');
+          throw Exception('Erro ao criar carona: ${caronaResponse.body}');
         }
       } else {
-        throw Exception('Erro ao carregar usuários');
+        throw Exception('Erro ao carregar dados do usuário');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,6 +79,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
           key: _formKey,
           child: Column(
             children: [
+              // Campo Destino
               TextFormField(
                 controller: _destinoController,
                 decoration: const InputDecoration(labelText: 'Destino'),
@@ -79,6 +90,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   return null;
                 },
               ),
+              // Campo Horário
               TextFormField(
                 controller: _horarioController,
                 decoration: const InputDecoration(labelText: 'Horário'),
@@ -89,6 +101,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   return null;
                 },
               ),
+              // Campo Vagas
               TextFormField(
                 controller: _vagasController,
                 decoration: const InputDecoration(labelText: 'Vagas'),
@@ -97,10 +110,14 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Informe o número de vagas';
                   }
+                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    return 'Informe um número válido de vagas';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+              // Botão de criação
               ElevatedButton(
                 onPressed: _criarCarona,
                 child: const Text('Criar Carona'),

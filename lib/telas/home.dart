@@ -15,7 +15,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
-  final String baseUrl = 'http://seu-servidor.com/api';  // Altere para a URL da sua API
+  final String baseUrl = 'http://192.168.1.9:5000';
 
   @override
   void initState() {
@@ -24,23 +24,33 @@ class _TelaHomeState extends State<TelaHome> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchCaronas() async {
-    final response = await http.get(Uri.parse('$baseUrl/carona'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return List<Map<String, dynamic>>.from(data);
-    } else {
-      throw Exception('Erro ao carregar caronas');
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/carona'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print('Caronas carregadas: $data');
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Erro ao carregar caronas: ${response.body}');
+      }
+    } catch (e) {
+      print('Erro ao carregar caronas: $e');
+      throw e;
     }
   }
 
   Future<Map<String, dynamic>?> _getUserInfo() async {
-    final response = await http.get(Uri.parse('$baseUrl/users'));
-    if (response.statusCode == 200) {
-      final List<dynamic> users = json.decode(response.body);
-      return users.firstWhere((user) => user['email'] == widget.userEmail, orElse: () => null);
-    } else {
-      throw Exception('Erro ao carregar informações do usuário');
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/users'));
+      if (response.statusCode == 200) {
+        final List<dynamic> users = json.decode(response.body);
+        return users.firstWhere((user) => user['email'] == widget.userEmail, orElse: () => null);
+      } else {
+        throw Exception('Erro ao carregar informações do usuário');
+      }
+    } catch (e) {
+      print('Erro ao carregar informações do usuário: $e');
+      return null;
     }
   }
 
@@ -52,7 +62,7 @@ class _TelaHomeState extends State<TelaHome> {
           const SnackBar(content: Text('Carona excluída com sucesso!')),
         );
         setState(() {
-          _caronasFuture = _fetchCaronas();
+          _caronasFuture = _fetchCaronas(); // Recarrega a lista de caronas após exclusão
         });
       } else {
         throw Exception('Erro ao excluir carona');
@@ -70,25 +80,25 @@ class _TelaHomeState extends State<TelaHome> {
       appBar: AppBar(
         title: const Text('Página Inicial'),
       ),
-      drawer: Drawer(
-        child: FutureBuilder<Map<String, dynamic>?>( 
-          future: _getUserInfo(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      drawer: FutureBuilder<Map<String, dynamic>?>(  // Atualiza a forma de construir o drawer
+        future: _getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (snapshot.hasError || !snapshot.hasData) {
-              return Center(
-                child: Text(
-                  'Erro ao carregar dados do usuário.',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
+          if (snapshot.hasError || !snapshot.hasData) {
+            return Center(
+              child: Text(
+                'Erro ao carregar dados do usuário.',
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
 
-            final user = snapshot.data!;
-            return Column(
+          final user = snapshot.data!;
+          return Drawer(
+            child: Column(
               children: [
                 UserAccountsDrawerHeader(
                   accountName: Text(user['nome']),
@@ -97,40 +107,41 @@ class _TelaHomeState extends State<TelaHome> {
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 50, color: Colors.blue),
                   ),
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                  ),
+                  decoration: const BoxDecoration(color: Colors.blue),
                 ),
                 ListTile(
                   title: const Text('Home'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
+                  leading: const Icon(Icons.home),
+                  onTap: () => Navigator.pop(context),
                 ),
                 ListTile(
-                  title: const Text('Configurações'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: const Text('Perfil'),
-                  onTap: () {
-                    Navigator.pop(context);
+                  title: const Text('Criar Carona'),
+                  leading: const Icon(Icons.add),
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CriarCaronaScreen(userEmail: widget.userEmail),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        _caronasFuture = _fetchCaronas();  // Atualiza a lista após a criação de carona
+                      });
+                    }
                   },
                 ),
                 ListTile(
                   title: const Text('Sair'),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/');
-                  },
+                  leading: const Icon(Icons.exit_to_app),
+                  onTap: () => Navigator.pushReplacementNamed(context, '/'),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>( 
+      body: FutureBuilder<List<Map<String, dynamic>>>(  // Atualiza a forma de construir a lista de caronas
         future: _caronasFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -157,7 +168,7 @@ class _TelaHomeState extends State<TelaHome> {
             );
           }
 
-          return FutureBuilder<Map<String, dynamic>?>( 
+          return FutureBuilder<Map<String, dynamic>?>(  // Atualiza a forma de construir o builder de usuário
             future: _getUserInfo(),
             builder: (context, userSnapshot) {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
@@ -208,13 +219,11 @@ class _TelaHomeState extends State<TelaHome> {
                                           'Tem certeza que deseja excluir esta carona?'),
                                       actions: [
                                         TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
+                                          onPressed: () => Navigator.pop(context, false),
                                           child: const Text('Cancelar'),
                                         ),
                                         TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
+                                          onPressed: () => Navigator.pop(context, true),
                                           child: const Text('Excluir'),
                                         ),
                                       ],
@@ -242,11 +251,14 @@ class _TelaHomeState extends State<TelaHome> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        CriarCaronaScreen(userEmail: widget.userEmail),
+                    builder: (context) => CriarCaronaScreen(userEmail: widget.userEmail),
                   ),
                 );
-                if (result == true) setState(() {});
+                if (result != null) {
+                  setState(() {
+                    _caronasFuture = _fetchCaronas();  // Atualiza a lista após a criação de carona
+                  });
+                }
               },
               tooltip: 'Criar Carona',
               child: const Icon(Icons.add),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -68,7 +67,6 @@ Future<void> _cadastrar() async {
     return Scaffold(
       body: Column(
         children: [
-          // Cabeçalho "Cadastre-se" com botão de voltar
           Stack(
             children: [
               Container(
@@ -77,7 +75,7 @@ Future<void> _cadastrar() async {
                 color: Colors.deepPurple,
                 alignment: Alignment.center,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 50.0), // Ajuste da posição
+                  padding: const EdgeInsets.only(top: 50.0),
                   child: const Text(
                     "Cadastre-se",
                     style: TextStyle(
@@ -94,13 +92,12 @@ Future<void> _cadastrar() async {
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () {
-                    Navigator.pop(context); // Retorna para a tela anterior
+                    Navigator.pop(context);
                   },
                 ),
               ),
             ],
           ),
-          // Formulário
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
@@ -109,7 +106,6 @@ Future<void> _cadastrar() async {
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Campo de Nome
                       Container(
                         margin: const EdgeInsets.all(8),
                         padding: const EdgeInsets.symmetric(
@@ -133,7 +129,6 @@ Future<void> _cadastrar() async {
                           ),
                         ),
                       ),
-                      // Campo de Email
                       Container(
                         margin: const EdgeInsets.all(8),
                         padding: const EdgeInsets.symmetric(
@@ -158,7 +153,6 @@ Future<void> _cadastrar() async {
                           keyboardType: TextInputType.emailAddress,
                         ),
                       ),
-                      // Campo de Senha
                       Container(
                         margin: const EdgeInsets.all(8),
                         padding: const EdgeInsets.symmetric(
@@ -196,7 +190,6 @@ Future<void> _cadastrar() async {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      // Seleção de Tipo de Usuário
                       const Text(
                         'Selecione o tipo de usuário:',
                         style: TextStyle(fontSize: 16),
@@ -226,7 +219,6 @@ Future<void> _cadastrar() async {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Botão de Cadastro
                       Container(
                         height: 50,
                         width: MediaQuery.of(context).size.width * 0.9,
