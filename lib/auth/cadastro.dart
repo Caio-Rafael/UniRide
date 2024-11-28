@@ -35,7 +35,7 @@ Future<void> _cadastrar() async {
 
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.1.9:5000/users'), 
+      Uri.parse('https://94b2-2804-954-fd0b-1400-7c78-f0c6-ffdb-c101.ngrok-free.app/users'), 
       headers: {'Content-Type': 'application/json'},
       body: json.encode(user),
     );

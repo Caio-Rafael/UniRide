@@ -16,14 +16,17 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _destinoController = TextEditingController();
   final _horarioController = TextEditingController();
   final _vagasController = TextEditingController();
-  final String baseUrl = 'http://192.168.1.9:5000'; // URL base da API
+  final String baseUrl = 'https://94b2-2804-954-fd0b-1400-7c78-f0c6-ffdb-c101.ngrok-free.app'; // URL base da API
 
   // Método para criar carona
   Future<void> _criarCarona() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final userResponse = await http.get(Uri.parse('$baseUrl/users'));
+      final userResponse = await http.get(
+        Uri.parse('$baseUrl/users'),
+        headers: {'Content-Type': 'application/json'},
+      );
       if (userResponse.statusCode == 200) {
         final List<dynamic> users = json.decode(userResponse.body);
         final user = users.firstWhere(

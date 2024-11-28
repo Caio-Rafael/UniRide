@@ -15,7 +15,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
-  final String baseUrl = 'http://192.168.1.9:5000';
+  final String baseUrl = 'https://94b2-2804-954-fd0b-1400-7c78-f0c6-ffdb-c101.ngrok-free.app';
 
   @override
   void initState() {
@@ -24,24 +24,35 @@ class _TelaHomeState extends State<TelaHome> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchCaronas() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/carona'));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        print('Caronas carregadas: $data');
-        return List<Map<String, dynamic>>.from(data);
-      } else {
-        throw Exception('Erro ao carregar caronas: ${response.body}');
-      }
-    } catch (e) {
-      print('Erro ao carregar caronas: $e');
-      throw e;
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/carona'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+    print('Resposta da API: ${response.body}'); // Adicione esta linha para verificar o conteúdo da resposta
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      print('Caronas carregadas: $data');
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      print('Erro ao carregar caronas: ${response.statusCode} - ${response.body}');
+      throw Exception('Erro ao carregar caronas: ${response.body}');
     }
+  } catch (e) {
+    print('Erro ao carregar caronas: $e');
+    throw e;
   }
+}
 
   Future<Map<String, dynamic>?> _getUserInfo() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/users'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/users'),
+        headers: {'Content-Type': 'application/json'},
+      );
       if (response.statusCode == 200) {
         final List<dynamic> users = json.decode(response.body);
         return users.firstWhere((user) => user['email'] == widget.userEmail, orElse: () => null);
@@ -56,7 +67,10 @@ class _TelaHomeState extends State<TelaHome> {
 
   Future<void> _excluirCarona(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/carona/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/carona/$id'),
+        headers: {'Content-Type': 'application/json'},
+      );
       if (response.statusCode == 204) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Carona excluída com sucesso!')),
