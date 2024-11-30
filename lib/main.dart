@@ -33,9 +33,11 @@ class MyApp extends StatelessWidget {
           if (args != null) {
             final userEmail = args['email'] as String;
             final userType = args['type'] as String;
+            final userId = args['id'] as int;
 
             return MaterialPageRoute(
               builder: (context) => TelaHome(
+                userId: userId,
                 userEmail: userEmail,
                 userType: userType,
               ),
