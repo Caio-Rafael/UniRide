@@ -58,7 +58,6 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
     }
   }
 
-  // Método para criar carona
   Future<void> _criarCarona() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -101,7 +100,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Carona criada com sucesso!')),
           );
-          Navigator.pop(context, newCarona); // Retorna com a nova carona criada
+          Navigator.pop(context, newCarona);
         } else {
           throw Exception('Erro ao criar carona: ${caronaResponse.body}');
         }
@@ -127,6 +126,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Campo CEP
                 TextFormField(
@@ -143,27 +143,32 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 8),
                 // Campos preenchidos automaticamente
                 TextFormField(
                   controller: _logradouroController,
                   decoration: const InputDecoration(labelText: 'Logradouro'),
                   readOnly: true,
                 ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _bairroController,
                   decoration: const InputDecoration(labelText: 'Bairro'),
                   readOnly: true,
                 ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _localidadeController,
                   decoration: const InputDecoration(labelText: 'Localidade'),
                   readOnly: true,
                 ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _ufController,
                   decoration: const InputDecoration(labelText: 'UF'),
                   readOnly: true,
                 ),
+                const SizedBox(height: 8),
                 // Outros campos
                 TextFormField(
                   controller: _destinoController,
@@ -175,6 +180,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _horarioController,
                   decoration: const InputDecoration(labelText: 'Horário'),
@@ -185,6 +191,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _vagasController,
                   decoration: const InputDecoration(labelText: 'Vagas'),
@@ -200,9 +207,15 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Botão de criação
+                // Botão estilizado
                 ElevatedButton(
                   onPressed: _criarCarona,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                   child: const Text('Criar Carona'),
                 ),
               ],

@@ -83,44 +83,63 @@ class _TelaLoginState extends State<TelaLogin> {
                     width: 300,
                   ),
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _emailController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email é obrigatório';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      icon: Icon(Icons.email),
-                      hintText: "Email",
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.deepPurple.withOpacity(0.2),
                     ),
-                    keyboardType: TextInputType.emailAddress,
+                    child: TextFormField(
+                      controller: _emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Email é obrigatório';
+                        }
+                        return null;
+                      },
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.email),
+                        border: InputBorder.none,
+                        hintText: "Email",
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
                   ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: _senhaController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Senha é obrigatória';
-                      }
-                      return null;
-                    },
-                    obscureText: !_isPasswordVisible,
-                    decoration: InputDecoration(
-                      icon: const Icon(Icons.lock),
-                      hintText: "Senha",
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.deepPurple.withOpacity(0.2),
+                    ),
+                    child: TextFormField(
+                      controller: _senhaController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Senha é obrigatória';
+                        }
+                        return null;
+                      },
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        icon: const Icon(Icons.lock),
+                        border: InputBorder.none,
+                        hintText: "Senha",
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
                       ),
                     ),
                   ),

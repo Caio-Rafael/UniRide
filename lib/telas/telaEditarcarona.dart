@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class Telaeditarcarona extends StatefulWidget {
-  final Map<String, dynamic> carona; // Recebe os dados da carona para edição
+class TelaEditarCarona extends StatefulWidget {
+  final Map<String, dynamic> carona;
 
-  const Telaeditarcarona({super.key, required this.carona});
+  const TelaEditarCarona({super.key, required this.carona});
 
   @override
-  _TelaeditarcaronaState createState() => _TelaeditarcaronaState();
+  _TelaEditarCaronaState createState() => _TelaEditarCaronaState();
 }
 
-class _TelaeditarcaronaState extends State<Telaeditarcarona> {
+class _TelaEditarCaronaState extends State<TelaEditarCarona> {
   final _formKey = GlobalKey<FormState>();
   final _cepController = TextEditingController();
   final _logradouroController = TextEditingController();
@@ -121,88 +121,100 @@ class _TelaeditarcaronaState extends State<Telaeditarcarona> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Campo CEP
-                TextFormField(
-                  controller: _cepController,
-                  decoration: const InputDecoration(labelText: 'CEP'),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    if (value.length == 8) _buscarEndereco();
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty || value.length != 8) {
-                      return 'Informe um CEP válido';
-                    }
-                    return null;
-                  },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Campo CEP
+              TextFormField(
+                controller: _cepController,
+                decoration: const InputDecoration(labelText: 'CEP'),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  if (value.length == 8) _buscarEndereco();
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty || value.length != 8) {
+                    return 'Informe um CEP válido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              // Campos preenchidos automaticamente
+              TextFormField(
+                controller: _logradouroController,
+                decoration: const InputDecoration(labelText: 'Logradouro'),
+                readOnly: true,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _bairroController,
+                decoration: const InputDecoration(labelText: 'Bairro'),
+                readOnly: true,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _localidadeController,
+                decoration: const InputDecoration(labelText: 'Localidade'),
+                readOnly: true,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _ufController,
+                decoration: const InputDecoration(labelText: 'UF'),
+                readOnly: true,
+              ),
+              const SizedBox(height: 8),
+              // Outros campos
+              TextFormField(
+                controller: _destinoController,
+                decoration: const InputDecoration(labelText: 'Destino'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Informe o destino';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _horarioController,
+                decoration: const InputDecoration(labelText: 'Horário'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Informe o horário';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _vagasController,
+                decoration: const InputDecoration(labelText: 'Vagas'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Informe o número de vagas';
+                  }
+                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    return 'Informe um número válido de vagas';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              // Botão estilizado
+              ElevatedButton(
+                onPressed: _atualizarCarona,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  textStyle: const TextStyle(fontSize: 18),
                 ),
-                // Campos preenchidos automaticamente
-                TextFormField(
-                  controller: _logradouroController,
-                  decoration: const InputDecoration(labelText: 'Logradouro'),
-                  readOnly: true,
-                ),
-                TextFormField(
-                  controller: _bairroController,
-                  decoration: const InputDecoration(labelText: 'Bairro'),
-                  readOnly: true,
-                ),
-                TextFormField(
-                  controller: _localidadeController,
-                  decoration: const InputDecoration(labelText: 'Localidade'),
-                  readOnly: true,
-                ),
-                TextFormField(
-                  controller: _ufController,
-                  decoration: const InputDecoration(labelText: 'UF'),
-                  readOnly: true,
-                ),
-                // Outros campos
-                TextFormField(
-                  controller: _destinoController,
-                  decoration: const InputDecoration(labelText: 'Destino'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe o destino';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _horarioController,
-                  decoration: const InputDecoration(labelText: 'Horário'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe o horário';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _vagasController,
-                  decoration: const InputDecoration(labelText: 'Vagas'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe o número de vagas';
-                    }
-                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                      return 'Informe um número válido de vagas';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Botão de atualização
-                ElevatedButton(
-                  onPressed: _atualizarCarona,
-                  child: const Text('Atualizar Carona'),
-                ),
-              ],
-            ),
+                child: const Text('Atualizar Carona'),
+              ),
+            ],
           ),
         ),
       ),

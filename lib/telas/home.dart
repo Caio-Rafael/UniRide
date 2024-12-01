@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import './telaCriarCarona.dart';
 import './TelaDetalhesCarona.dart';
-import 'telaEditarcarona.dart';
+import './telaEditarCarona.dart';
 
 class TelaHome extends StatefulWidget {
   final String userEmail;
@@ -198,7 +198,7 @@ class _TelaHomeState extends State<TelaHome> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    Telaeditarcarona(carona: carona),
+                                    TelaEditarCarona(carona: carona),
                               ),
                             );
                             // Atualizar a lista de caronas após editar
