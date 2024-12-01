@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class CriarCaronaScreen extends StatefulWidget {
-  final String userEmail;
+class Telaeditarcarona extends StatefulWidget {
+  final Map<String, dynamic> carona; // Recebe os dados da carona para edição
 
-  const CriarCaronaScreen({super.key, required this.userEmail});
+  const Telaeditarcarona({super.key, required this.carona});
 
   @override
-  _CriarCaronaScreenState createState() => _CriarCaronaScreenState();
+  _TelaeditarcaronaState createState() => _TelaeditarcaronaState();
 }
 
-class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
+class _TelaeditarcaronaState extends State<Telaeditarcarona> {
   final _formKey = GlobalKey<FormState>();
   final _cepController = TextEditingController();
   final _logradouroController = TextEditingController();
@@ -23,6 +23,23 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _vagasController = TextEditingController();
 
   final String baseUrl = 'http://192.168.1.9:5000';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFields();
+  }
+
+  void _initializeFields() {
+    _cepController.text = widget.carona['cep'] ?? '';
+    _logradouroController.text = widget.carona['logradouro'] ?? '';
+    _bairroController.text = widget.carona['bairro'] ?? '';
+    _localidadeController.text = widget.carona['localidade'] ?? '';
+    _ufController.text = widget.carona['uf'] ?? '';
+    _destinoController.text = widget.carona['destino'] ?? '';
+    _horarioController.text = widget.carona['horario'] ?? '';
+    _vagasController.text = widget.carona['vagas'].toString();
+  }
 
   Future<void> _buscarEndereco() async {
     final cep = _cepController.text.trim();
@@ -58,55 +75,34 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
     }
   }
 
-  // Método para criar carona
-  Future<void> _criarCarona() async {
+  Future<void> _atualizarCarona() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final userResponse = await http.get(
-        Uri.parse('$baseUrl/users'),
+      final caronaAtualizada = {
+        'destino': _destinoController.text.trim(),
+        'horario': _horarioController.text.trim(),
+        'vagas': int.parse(_vagasController.text.trim()),
+        'cep': _cepController.text.trim(),
+        'logradouro': _logradouroController.text.trim(),
+        'bairro': _bairroController.text.trim(),
+        'localidade': _localidadeController.text.trim(),
+        'uf': _ufController.text.trim(),
+      };
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/carona/${widget.carona["id"]}'),
         headers: {'Content-Type': 'application/json'},
+        body: json.encode(caronaAtualizada),
       );
-      if (userResponse.statusCode == 200) {
-        final List<dynamic> users = json.decode(userResponse.body);
-        final user = users.firstWhere(
-          (user) => user['email'] == widget.userEmail,
-          orElse: () => null,
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Carona atualizada com sucesso!')),
         );
-
-        if (user == null) {
-          throw Exception('Usuário não encontrado');
-        }
-
-        final carona = {
-          'motorista_id': user['id'],
-          'destino': _destinoController.text.trim(),
-          'horario': _horarioController.text.trim(),
-          'vagas': int.parse(_vagasController.text.trim()),
-          'cep': _cepController.text.trim(),
-          'logradouro': _logradouroController.text.trim(),
-          'bairro': _bairroController.text.trim(),
-          'localidade': _localidadeController.text.trim(),
-          'uf': _ufController.text.trim(),
-        };
-
-        final caronaResponse = await http.post(
-          Uri.parse('$baseUrl/carona'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(carona),
-        );
-
-        if (caronaResponse.statusCode == 201) {
-          final newCarona = json.decode(caronaResponse.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Carona criada com sucesso!')),
-          );
-          Navigator.pop(context, newCarona); // Retorna com a nova carona criada
-        } else {
-          throw Exception('Erro ao criar carona: ${caronaResponse.body}');
-        }
+        Navigator.pop(context, caronaAtualizada);
       } else {
-        throw Exception('Erro ao carregar dados do usuário');
+        throw Exception('Erro ao atualizar carona: ${response.body}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,7 +115,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Criar Carona'),
+        title: const Text('Editar Carona'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -200,10 +196,10 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Botão de criação
+                // Botão de atualização
                 ElevatedButton(
-                  onPressed: _criarCarona,
-                  child: const Text('Criar Carona'),
+                  onPressed: _atualizarCarona,
+                  child: const Text('Atualizar Carona'),
                 ),
               ],
             ),

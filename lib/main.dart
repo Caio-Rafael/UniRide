@@ -20,12 +20,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/', 
+      initialRoute: '/',
       routes: {
-        '/': (context) => const TelaLogin(), 
-        '/cadastro': (context) => const TelaCadastro(), 
+        '/': (context) => const TelaLogin(),
+        '/cadastro': (context) => const TelaCadastro(),
       },
-      
       onGenerateRoute: (settings) {
         if (settings.name == '/home') {
           final args = settings.arguments as Map<String, dynamic>?;

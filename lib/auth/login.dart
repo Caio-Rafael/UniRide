@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../telas/home.dart'; 
+import '../telas/home.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -33,7 +33,7 @@ class _TelaLoginState extends State<TelaLogin> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.9:5000/login'), 
+        Uri.parse('http://192.168.1.9:5000/login'),
         body: json.encode({'email': email, 'senha': senha}),
         headers: {'Content-Type': 'application/json'},
       );

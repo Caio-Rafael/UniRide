@@ -3,14 +3,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import './telaCriarCarona.dart';
 import './TelaDetalhesCarona.dart';
-import '../auth/login.dart';
+import 'telaEditarcarona.dart';
 
 class TelaHome extends StatefulWidget {
   final String userEmail;
   final int userId;
   final String userType;
 
-  const TelaHome({super.key, required this.userEmail, required this.userType, required this.userId});
+  const TelaHome(
+      {super.key,
+      required this.userEmail,
+      required this.userType,
+      required this.userId});
 
   @override
   _TelaHomeState createState() => _TelaHomeState();
@@ -137,7 +141,7 @@ class _TelaHomeState extends State<TelaHome> {
           ],
         ),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>( 
+      body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _caronasFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -181,19 +185,75 @@ class _TelaHomeState extends State<TelaHome> {
                     ],
                   ),
                   leading: const Icon(Icons.directions_car, color: Colors.blue),
-                  trailing: widget.userId == carona['motorista_id']
-                      ? IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            _deleteCarona(carona['motorista_id']);
+                  trailing: Row(
+                    mainAxisSize:
+                        MainAxisSize.min, // Permite que os ícones fiquem juntos
+                    children: [
+                      if (widget.userId == carona['motorista_id'])
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.orange),
+                          onPressed: () async {
+                            // Navegação para a tela de edição de carona
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    Telaeditarcarona(carona: carona),
+                              ),
+                            );
+                            // Atualizar a lista de caronas após editar
+                            if (result != null) {
+                              setState(() {
+                                _caronasFuture = _fetchCaronas();
+                              });
+                            }
                           },
-                        )
-                      : null,
+                        ),
+                      if (widget.userId == carona['motorista_id'])
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Confirmar Exclusão'),
+                                  content: const Text(
+                                      'Tem certeza que deseja excluir esta carona?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Excluir'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (confirm == true) {
+                              await _deleteCarona(carona['id']);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Carona excluída com sucesso')),
+                              );
+                            }
+                          },
+                        ),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TelaDetalhesCarona(carona: carona),
+                        builder: (context) =>
+                            TelaDetalhesCarona(carona: carona),
                       ),
                     );
                   },
@@ -209,7 +269,8 @@ class _TelaHomeState extends State<TelaHome> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CriarCaronaScreen(userEmail: widget.userEmail),
+                    builder: (context) =>
+                        CriarCaronaScreen(userEmail: widget.userEmail),
                   ),
                 );
                 if (result != null) {
