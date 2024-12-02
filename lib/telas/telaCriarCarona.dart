@@ -21,6 +21,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _destinoController = TextEditingController();
   final _horarioController = TextEditingController();
   final _vagasController = TextEditingController();
+  final _descricaoController = TextEditingController();
 
   final String baseUrl = 'http://192.168.1.9:5000';
 
@@ -87,6 +88,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
           'bairro': _bairroController.text.trim(),
           'localidade': _localidadeController.text.trim(),
           'uf': _ufController.text.trim(),
+          'descricao': _descricaoController.text.trim(),
         };
 
         final caronaResponse = await http.post(
@@ -205,6 +207,12 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _descricaoController,
+                  decoration: const InputDecoration(labelText: 'Descrição'),
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 // Botão estilizado

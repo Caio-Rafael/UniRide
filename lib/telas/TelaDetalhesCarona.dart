@@ -37,7 +37,8 @@ class TelaDetalhesCarona extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              carona.toString(),
+              carona['descricao'] ??
+                  'Nenhuma descrição fornecida',
               style: const TextStyle(fontSize: 14),
             ),
           ],

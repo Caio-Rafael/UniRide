@@ -21,6 +21,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
   final _destinoController = TextEditingController();
   final _horarioController = TextEditingController();
   final _vagasController = TextEditingController();
+  final _descricaoController = TextEditingController();
 
   final String baseUrl = 'http://192.168.1.9:5000';
 
@@ -39,6 +40,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
     _destinoController.text = widget.carona['destino'] ?? '';
     _horarioController.text = widget.carona['horario'] ?? '';
     _vagasController.text = widget.carona['vagas'].toString();
+    _descricaoController.text = widget.carona['descricao'] ?? '';
   }
 
   Future<void> _buscarEndereco() async {
@@ -88,6 +90,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
         'bairro': _bairroController.text.trim(),
         'localidade': _localidadeController.text.trim(),
         'uf': _ufController.text.trim(),
+        'descricao': _descricaoController.text.trim(),
       };
 
       final response = await http.put(
@@ -202,6 +205,12 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
                   return null;
                 },
               ),
+              TextFormField(
+                controller: _descricaoController,
+                decoration: const InputDecoration(labelText: 'Descrição'),
+                maxLines: 3, // Permite múltiplas linhas para um texto maior
+              ),
+
               const SizedBox(height: 16),
               // Botão estilizado
               ElevatedButton(
