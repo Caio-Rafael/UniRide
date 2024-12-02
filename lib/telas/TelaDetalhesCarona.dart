@@ -7,6 +7,12 @@ class TelaDetalhesCarona extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<String> nomesPassageiros = [];
+    if (carona['passageiros'] != null) {
+      nomesPassageiros = List<String>.from(carona['passageiros']
+          .map((passageiro) => passageiro['nome'] ?? 'Nome não disponível'));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalhes da Carona'),
@@ -17,7 +23,7 @@ class TelaDetalhesCarona extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Destino: ${carona['bairro']}',
+              'Destino: ${carona['bairro']}, ${carona['logradouro']}, ${carona['localidade']}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -37,10 +43,24 @@ class TelaDetalhesCarona extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              carona['descricao'] ??
-                  'Nenhuma descrição fornecida',
+              carona['descricao'] ?? 'Nenhuma descrição fornecida',
               style: const TextStyle(fontSize: 14),
             ),
+            const SizedBox(height: 16),
+            const Text(
+              'Passageiros:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (nomesPassageiros.isEmpty)
+              const Text(
+                'Nenhum passageiro na carona',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              )
+            else
+              ...nomesPassageiros.map((nome) => Text(
+                    nome,
+                    style: const TextStyle(fontSize: 16),
+                  )),
           ],
         ),
       ),

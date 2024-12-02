@@ -23,7 +23,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _vagasController = TextEditingController();
   final _descricaoController = TextEditingController();
 
-  final String baseUrl = 'http://192.168.1.9:5000';
+  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
 
   Future<void> _buscarEndereco() async {
     final cep = _cepController.text.trim();
@@ -171,17 +171,6 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   readOnly: true,
                 ),
                 const SizedBox(height: 8),
-                // Outros campos
-                TextFormField(
-                  controller: _destinoController,
-                  decoration: const InputDecoration(labelText: 'Destino'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe o destino';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _horarioController,
@@ -215,7 +204,6 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                // Botão estilizado
                 ElevatedButton(
                   onPressed: _criarCarona,
                   style: ElevatedButton.styleFrom(

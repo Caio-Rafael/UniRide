@@ -23,7 +23,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
   final _vagasController = TextEditingController();
   final _descricaoController = TextEditingController();
 
-  final String baseUrl = 'http://192.168.1.9:5000';
+  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
 
   @override
   void initState() {
@@ -168,18 +168,6 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
                 readOnly: true,
               ),
               const SizedBox(height: 8),
-              // Outros campos
-              TextFormField(
-                controller: _destinoController,
-                decoration: const InputDecoration(labelText: 'Destino'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o destino';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
               TextFormField(
                 controller: _horarioController,
                 decoration: const InputDecoration(labelText: 'Horário'),
@@ -208,11 +196,10 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
               TextFormField(
                 controller: _descricaoController,
                 decoration: const InputDecoration(labelText: 'Descrição'),
-                maxLines: 3, // Permite múltiplas linhas para um texto maior
+                maxLines: 3,
               ),
-
               const SizedBox(height: 16),
-              // Botão estilizado
+
               ElevatedButton(
                 onPressed: _atualizarCarona,
                 style: ElevatedButton.styleFrom(

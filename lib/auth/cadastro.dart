@@ -35,7 +35,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.9:5000/users'),
+        Uri.parse('https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app/users'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(user),
       );

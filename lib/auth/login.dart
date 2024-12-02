@@ -33,7 +33,7 @@ class _TelaLoginState extends State<TelaLogin> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.9:5000/login'),
+        Uri.parse('https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app/login'),
         body: json.encode({'email': email, 'senha': senha}),
         headers: {'Content-Type': 'application/json'},
       );

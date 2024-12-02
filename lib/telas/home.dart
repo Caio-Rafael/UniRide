@@ -22,7 +22,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
-  final String baseUrl = 'http://192.168.1.9:5000';
+  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
 
   @override
   void initState() {
@@ -69,6 +69,62 @@ class _TelaHomeState extends State<TelaHome> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao deletar carona: $e')),
+      );
+    }
+  }
+
+  Future<void> _entrarNaCarona(int caronaId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/carona/$caronaId/entrar'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'user_id': widget.userId}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Entrou na carona com sucesso!')),
+        );
+        setState(() {
+          _caronasFuture = _fetchCaronas();
+        });
+      } else {
+        throw Exception('Erro ao entrar na carona: ${response.body}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao entrar na carona: $e')),
+      );
+    }
+  }
+
+  Future<void> _sairDaCarona(int caronaId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/carona/$caronaId/sair'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'user_id': widget.userId}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saiu da carona com sucesso!')),
+        );
+        setState(() {
+          _caronasFuture = _fetchCaronas();
+        });
+      } else {
+        throw Exception('Erro ao sair da carona: ${response.body}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao sair da carona: $e')),
       );
     }
   }
@@ -186,66 +242,75 @@ class _TelaHomeState extends State<TelaHome> {
                   ),
                   leading: const Icon(Icons.directions_car, color: Colors.blue),
                   trailing: Row(
-                    mainAxisSize:
-                        MainAxisSize.min, // Permite que os ícones fiquem juntos
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.userId == carona['motorista_id'])
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.orange),
-                          onPressed: () async {
-                            // Navegação para a tela de edição de carona
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TelaEditarCarona(carona: carona),
-                              ),
-                            );
-                            // Atualizar a lista de caronas após editar
-                            if (result != null) {
-                              setState(() {
-                                _caronasFuture = _fetchCaronas();
-                              });
-                            }
-                          },
-                        ),
-                      if (widget.userId == carona['motorista_id'])
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Confirmar Exclusão'),
-                                  content: const Text(
-                                      'Tem certeza que deseja excluir esta carona?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text('Excluir'),
-                                    ),
-                                  ],
+                        Row(
+                          children: [
+                            // Botão de editar
+                            IconButton(
+                              icon:
+                                  const Icon(Icons.edit, color: Colors.orange),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TelaEditarCarona(carona: carona),
+                                  ),
                                 );
+                                if (result != null) {
+                                  setState(() {
+                                    _caronasFuture = _fetchCaronas();
+                                  });
+                                }
                               },
-                            );
+                            ),
+                            // Botão de excluir
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                // Confirmação antes de excluir
+                                bool? confirmDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Excluir carona'),
+                                      content: const Text(
+                                          'Tem certeza de que deseja excluir esta carona?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                          child: const Text('Excluir'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
 
-                            if (confirm == true) {
-                              await _deleteCarona(carona['id']);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Carona excluída com sucesso')),
-                              );
-                            }
-                          },
+                                if (confirmDelete == true) {
+                                  await _deleteCarona(carona['id']);
+                                }
+                              },
+                            ),
+                          ],
                         ),
+                      // Botão de sair
+                      IconButton(
+                        icon: const Icon(Icons.exit_to_app, color: Colors.red),
+                        onPressed: () => _sairDaCarona(carona['id']),
+                      ),
+                      // Botão de entrar
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Colors.green),
+                        onPressed: () => _entrarNaCarona(carona['id']),
+                      ),
                     ],
                   ),
                   onTap: () {
