@@ -22,7 +22,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
-  final String baseUrl = 'https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app';
+  final String baseUrl = 'https://260a-2804-954-faa5-4e00-b434-1f33-2bb8-cb4d.ngrok-free.app';
 
   @override
   void initState() {

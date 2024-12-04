@@ -35,7 +35,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app/users'),
+        Uri.parse('https://260a-2804-954-faa5-4e00-b434-1f33-2bb8-cb4d.ngrok-free.app/users'),
         headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69420"},
         body: json.encode(user),
       );
