@@ -23,7 +23,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
   final _vagasController = TextEditingController();
   final _descricaoController = TextEditingController();
 
-  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
+  final String baseUrl = 'https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app';
 
   Future<void> _buscarEndereco() async {
     final cep = _cepController.text.trim();
@@ -65,7 +65,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
     try {
       final userResponse = await http.get(
         Uri.parse('$baseUrl/users'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69420"},
       );
       if (userResponse.statusCode == 200) {
         final List<dynamic> users = json.decode(userResponse.body);
@@ -93,7 +93,7 @@ class _CriarCaronaScreenState extends State<CriarCaronaScreen> {
 
         final caronaResponse = await http.post(
           Uri.parse('$baseUrl/carona'),
-          headers: {'Content-Type': 'application/json'},
+          headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69420"},
           body: json.encode(carona),
         );
 

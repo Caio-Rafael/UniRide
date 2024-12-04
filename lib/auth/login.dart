@@ -33,9 +33,9 @@ class _TelaLoginState extends State<TelaLogin> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app/login'),
+        Uri.parse('https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app/login'),
         body: json.encode({'email': email, 'senha': senha}),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69420"},
       );
 
       if (response.statusCode == 200) {

@@ -22,7 +22,7 @@ class TelaHome extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaHome> {
   late Future<List<Map<String, dynamic>>> _caronasFuture;
-  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
+  final String baseUrl = 'https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app';
 
   @override
   void initState() {
@@ -37,6 +37,7 @@ class _TelaHomeState extends State<TelaHome> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          "ngrok-skip-browser-warning": "69420",
         },
       );
       if (response.statusCode == 200) {
@@ -57,6 +58,7 @@ class _TelaHomeState extends State<TelaHome> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          "ngrok-skip-browser-warning": "69420",
         },
       );
       if (response.statusCode == 204) {
@@ -80,6 +82,7 @@ class _TelaHomeState extends State<TelaHome> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          "ngrok-skip-browser-warning": "69420",
         },
         body: json.encode({'user_id': widget.userId}),
       );
@@ -108,6 +111,7 @@ class _TelaHomeState extends State<TelaHome> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          "ngrok-skip-browser-warning": "69420",
         },
         body: json.encode({'user_id': widget.userId}),
       );

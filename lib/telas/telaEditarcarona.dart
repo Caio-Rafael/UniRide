@@ -23,7 +23,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
   final _vagasController = TextEditingController();
   final _descricaoController = TextEditingController();
 
-  final String baseUrl = 'https://cb53-2804-954-faa5-4e00-9df5-4b05-e290-5f2b.ngrok-free.app';
+  final String baseUrl = 'https://1e1c-2804-954-faa5-4e00-c433-a34f-c821-900.ngrok-free.app';
 
   @override
   void initState() {
@@ -95,7 +95,7 @@ class _TelaEditarCaronaState extends State<TelaEditarCarona> {
 
       final response = await http.put(
         Uri.parse('$baseUrl/carona/${widget.carona["id"]}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69420"},
         body: json.encode(caronaAtualizada),
       );
 
